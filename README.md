@@ -2,145 +2,52 @@
 
 This Terraform project provisions an Amazon Lightsail instance with a static IP using AWS.
 
----
-
-## Overview
-
-This configuration creates:
-
-- A Lightsail Ubuntu instance
-- A static IP address
-- Attachment of static IP to the instance
-
-It is designed for simple VPS deployment using AWS Lightsail.
-
----
-
-## Resources Created
-
-- `aws_lightsail_instance.my_lightsail_instance` – Lightsail VM instance
-- `aws_lightsail_static_ip.my_static_ip` – Static IP resource
-- `aws_lightsail_static_ip_attachment.my_static_ip_attachment` – Attaches static IP to instance
-
----
-
 ## Prerequisites
 
 Ensure the following are installed and configured:
-
 - Terraform >= 1.0
 - AWS CLI configured (`aws configure`)
 - AWS account with Lightsail permissions
 
-Verify installation:
+Verify:
 
-```sh
-terraform -v
+```bash
 aws sts get-caller-identity
 ```
 
----
+## Setup & Deployment
 
-## File Structure
+1. **Initialize Terraform**:
+   ```bash
+   terraform init
+   ```
 
-```
-.
-├── main.tf
-└── README.md
-```
+2. **Validate Configuration**:
+   ```bash
+   terraform validate
+   ```
 
----
+3. **Preview Changes**:
+   ```bash
+   terraform plan
+   ```
 
-## Configuration Details
+4. **Apply Configuration**:
+   ```bash
+   terraform apply -auto-approve
+   ```
 
-### Provider
+   This will create a Lightsail instance, allocate a static IP, and attach the static IP to the instance.
 
-AWS region is set to:
+5. **SSH Access**:
+   ```bash
+   ssh -i <private_key_file> ubuntu@<instance_public_ip>
+   ```
 
-```
-ap-southeast-1
-```
-
-You can change it based on your preferred region.
-
----
-
-### Lightsail Instance
-
-- Name: `my-lightsail-instance`
-- Blueprint: `ubuntu_20_04`
-- Bundle: `micro_2_0`
-- Availability Zone: `ap-southeast-1a`
-
----
-
-### Static IP
-
-A static IP is created and attached to the instance to ensure a stable public IP address.
-
----
-
-## Usage
-
-### 1. Initialize Terraform
-
-```sh
-terraform init
-```
-
----
-
-### 2. Validate Configuration
-
-```sh
-terraform validate
-```
-
----
-
-### 3. Preview Changes
-
-```sh
-terraform plan
-```
-
----
-
-### 4. Apply Configuration
-
-```sh
-terraform apply -auto-approve
-```
-
-This will:
-
-- Create Lightsail instance
-- Allocate static IP
-- Attach static IP to instance
-
----
-
-### 5. Destroy Infrastructure (optional)
-
-```sh
-terraform destroy -auto-approve
-```
-
----
-
-## Outputs
-
-After deployment, Terraform outputs:
-
-- `instance_public_ip` – Public static IP of Lightsail instance
-
-Example:
-
-```
-instance_public_ip = "13.xxx.xxx.xxx"
-```
-
----
+6. **Destroy** (when no longer needed):
+   ```bash
+   terraform destroy -auto-approve
+   ```
 
 ## Usage as a Module
 
@@ -155,7 +62,6 @@ module "lightsail" {
 Then use the outputs in your configuration:
 
 ```hcl
-# Example: reference the public IP in a DNS record
 resource "aws_route53_record" "instance" {
   zone_id = var.zone_id
   name    = "app"
@@ -167,17 +73,21 @@ resource "aws_route53_record" "instance" {
 
 All outputs documented below are available when using this as a module.
 
----
+## Variables
 
-## SSH Access
+This module accepts no configurable variables. Instance name, blueprint, bundle, and availability zone are preconfigured with sensible defaults.
 
-Once deployed, connect using:
+## Outputs
 
-```sh
-ssh -i <private_key_file> ubuntu@<instance_public_ip>
-```
+| Output | Description |
+|--------|-------------|
+| `instance_public_ip` | Public static IP of Lightsail instance |
 
----
+## Resources Created
+
+- `aws_lightsail_instance.my_lightsail_instance` – Lightsail VM instance (Ubuntu 20.04, micro_2_0)
+- `aws_lightsail_static_ip.my_static_ip` – Static IP resource
+- `aws_lightsail_static_ip_attachment.my_static_ip_attachment` – Attaches static IP to instance
 
 ## Notes
 
@@ -186,36 +96,11 @@ ssh -i <private_key_file> ubuntu@<instance_public_ip>
 - Static IP ensures IP does not change on restart
 - Uncomment `key_pair_name` if SSH key is configured in Lightsail
 
----
-
 ## Common Issues
 
 ### Instance not accessible
-
 - Ensure SSH port (22) is allowed in Lightsail networking
 - Verify correct key pair usage
 
 ### Invalid blueprint or bundle
-
 - Check AWS Lightsail supported images and instance sizes
-
----
-
-## Cleanup
-
-To remove all resources:
-
-```sh
-terraform destroy -auto-approve
-```
-
----
-
-## Summary
-
-This Terraform setup provides a simple Lightsail VPS deployment with:
-
-- Ubuntu instance provisioning
-- Static IP attachment
-- Easy SSH access
-- Minimal configuration for quick deployment
