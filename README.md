@@ -142,6 +142,33 @@ instance_public_ip = "13.xxx.xxx.xxx"
 
 ---
 
+## Usage as a Module
+
+Reference this repository as a Terraform module in your own configurations:
+
+```hcl
+module "lightsail" {
+  source = "github.com/marcuwynu23/terraform-aws-lightsail?ref=main"
+}
+```
+
+Then use the outputs in your configuration:
+
+```hcl
+# Example: reference the public IP in a DNS record
+resource "aws_route53_record" "instance" {
+  zone_id = var.zone_id
+  name    = "app"
+  type    = "A"
+  ttl     = "300"
+  records = [module.lightsail.instance_public_ip]
+}
+```
+
+All outputs documented below are available when using this as a module.
+
+---
+
 ## SSH Access
 
 Once deployed, connect using:
