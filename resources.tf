@@ -1,10 +1,10 @@
 
 # Create a Lightsail instance
 resource "aws_lightsail_instance" "my_lightsail_instance" {
-  name              = "my-lightsail-instance"
-  availability_zone = "ap-southeast-1a" # Choose your availability zone
-  blueprint_id      = "ubuntu_20_04"    # The blueprint ID (Ubuntu in this case)
-  bundle_id         = "micro_2_0"       # Instance size, choose appropriate one for your need
+  name              = var.instance_name
+  availability_zone = var.availability_zone
+  blueprint_id      = var.blueprint_id
+  bundle_id         = var.bundle_id
 
   # key_pair_name = "marcuwynu23-aws" # Make sure this SSH key exists
   tags = {
