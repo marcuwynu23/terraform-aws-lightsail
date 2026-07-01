@@ -1,0 +1,74 @@
+name: CD - AWS Lightsail (Destroy)
+
+on:
+  workflow_dispatch:
+    inputs:
+
+      instance_name:
+        description: Name of the Lightsail instance
+        required: true
+        type: string
+        default: my-lightsail-instance
+
+      availability_zone:
+        description: Availability zone for the Lightsail instance
+        required: true
+        type: string
+        default: ap-southeast-1a
+
+      blueprint_id:
+        description: Blueprint ID (OS/image) for the Lightsail instance
+        required: true
+        type: string
+        default: ubuntu_20_04
+
+      bundle_id:
+        description: Bundle ID (instance size) for the Lightsail instance
+        required: true
+        type: string
+        default: micro_2_0
+
+env:
+  TF_STATE_BUCKET: ${{ secrets.TF_STATE_BUCKET }}
+  TF_STATE_REGION: ${{ secrets.TF_STATE_REGION }}
+  TF_STATE_LOCK_TABLE: ${{ secrets.TF_STATE_LOCK_TABLE }}
+
+jobs:
+  destroy:
+    name: Terraform Destroy
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.TF_STATE_REGION }}
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: latest
+    - name: Terraform Init
+      run: |
+        terraform init \
+          -backend-config="bucket=$TF_STATE_BUCKET" \
+          -backend-config="key=lightsail/terraform.tfstate" \
+          -backend-config="region=$TF_STATE_REGION" \
+          -backend-config="dynamodb_table=$TF_STATE_LOCK_TABLE" \
+          -backend-config="encrypt=true"
+    - name: Terraform Plan
+      run: |
+        terraform plan -destroy \
+          -var="instance_name=${{ github.event.inputs.instance_name }}" \
+          -var="availability_zone=${{ github.event.inputs.availability_zone }}" \
+          -var="blueprint_id=${{ github.event.inputs.blueprint_id }}" \
+          -var="bundle_id=${{ github.event.inputs.bundle_id }}"
+    - name: Terraform Destroy
+      run: |
+        terraform destroy -auto-approve \
+          -var="instance_name=${{ github.event.inputs.instance_name }}" \
+          -var="availability_zone=${{ github.event.inputs.availability_zone }}" \
+          -var="blueprint_id=${{ github.event.inputs.blueprint_id }}" \
+          -var="bundle_id=${{ github.event.inputs.bundle_id }}"
