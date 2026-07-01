@@ -1,0 +1,4 @@
+instance_name    = "my-lightsail-instance"
+availability_zone = "ap-southeast-1a"
+blueprint_id     = "ubuntu_20_04"
+bundle_id        = "micro_2_0"
